@@ -15,16 +15,16 @@ from torch.utils.data.sampler import Sampler
 class singeToothLoader(Dataset):
     """ LA Dataset """
     def __init__(self, base_dir=None, split='train', num=None, transform=None):
-        self._base_dir = '/hpc/data/home/bme/v-cuizm/data/ToothSeg_CBCT/h5/HZ/0.2_2st_stage_pacth_cnt_crop_clip/'
+        self._base_dir = '/home/mkaailab/Documents/CBCT/toothseg/data/train_cui_instseg/'
         self.transform = transform
         self.sample_list = []
         self.label_list = []
         if split=='train':
-            with open('/public_bme/home/liujm/Data/czm/dental/uii/single_tooth_seg_h5/file.list', 'r') as f:
+            with open(self._base_dir + 'train_file.list', 'r') as f:
                 self.image_list = f.readlines()
                 
         elif split == 'test':
-            with open('/public_bme/home/liujm/Data/czm/dental/uii/single_tooth_seg_h5/test.list', 'r') as f:
+            with open(self._base_dir + 'test_file.list', 'r') as f:
                 self.image_list = f.readlines()
         self.image_list = [item.replace('\n','') for item in self.image_list]
         self.label_list = [item.replace('\n','') for item in self.label_list]
@@ -38,10 +38,13 @@ class singeToothLoader(Dataset):
         h5f = h5py.File(image_name, 'r')
         image = h5f['image'][:]
         label = h5f['label'][:]
-        skeleton = h5f['centroid'][:]
-        boundary = h5f['boundary'][:]
-        keypoints = h5f['keypoints'][:]
-        skeleton = (skeleton - skeleton.min())/(skeleton.max() - skeleton.min())
+        skeleton = h5f['skeleton'][:]
+        boundary = gaussian_filter(h5f['boundary'].astype(float), sigma=0.8)
+        keypoints = gaussian_filter(h5f['keypoints'].astype(float), sigma=0.8)
+
+        skeleton = (skeleton - skeleton.min()) / (skeleton.max() - skeleton.min())
+        boundary = (boundary - boundary.min()) / (boundary.max() - boundary.min())
+        keypoints = (keypoints - keypoints.min()) / (keypoints.max() - keypoints.min())
         sample = {'image': image, 'label': label, 'skeleton': skeleton, 'boundary': boundary, 'keypoints': keypoints}
         if self.transform:
             sample = self.transform(sample)

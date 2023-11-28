@@ -24,7 +24,7 @@ from dataloaders.toothLoader import toothLoader, RandomCrop, CenterCrop, RandomR
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str, default='/userhome/35/zmcui/TMI_ToothSegmentation/data/h5/', help='Name of Experiment')
-parser.add_argument('--exp', type=str,  default='NC_1st_stage_cntV2_HZ_02_(1000data_256size_intensityClip)', help='model_name')
+parser.add_argument('--exp', type=str,  default='centroids', help='model_name')
 parser.add_argument('--max_iterations', type=int,  default=60000, help='maximum epoch number to train')
 parser.add_argument('--batch_size', type=int, default=1, help='batch_size per gpu')
 parser.add_argument('--base_lr', type=float,  default=0.01, help='maximum epoch number to train')
@@ -111,8 +111,8 @@ if __name__ == "__main__":
         for i_batch, sampled_batch in enumerate(trainloader):
             time2 = time.time()
             # print('fetch data cost {}'.format(time2-time1))
-            volume_batch, offset_batch, offset_skl_batch, label_batch = sampled_batch['image'], sampled_batch['offset_cnt'], sampled_batch['offset_skl'], sampled_batch['label']
-            volume_batch, offset_batch, offset_skl_batch, label_batch = volume_batch.cuda(), offset_batch.cuda(), offset_skl_batch.cuda(), label_batch.cuda()
+            volume_batch, offset_batch, label_batch = sampled_batch['image'], sampled_batch['offset_cnt'], sampled_batch['label']
+            volume_batch, offset_batch, label_batch = volume_batch.cuda(), offset_batch.cuda(), label_batch.cuda()
             outputs_off, outputs_seg = net(volume_batch)
 
             # loss for seg and off
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             writer.add_scalar('loss/loss', loss, iter_num)
             logging.info('iteration %d : loss : %f' % (iter_num, loss.item()))
             
-            del volume_batch, offset_batch, offset_skl_batch, label_batch, loss_seg, outputs_soft, loss_seg_dice, loss_off
+            del volume_batch, offset_batch, label_batch, loss_seg, outputs_soft, loss_seg_dice, loss_off
 
             ## change lr
             if iter_num % 4000 == 0 and iter_num < 8001:
@@ -156,8 +156,8 @@ if __name__ == "__main__":
                 test_loss = 0
                 iter_test = 0
                 for i_batch, sampled_batch in enumerate(testloader):
-                    volume_batch, offset_batch, offset_skl_batch, label_batch = sampled_batch['image'], sampled_batch['offset_cnt'], sampled_batch['offset_skl'], sampled_batch['label']
-                    volume_batch, offset_batch, offset_skl_batch, label_batch = volume_batch.cuda(), offset_batch.cuda(), offset_skl_batch.cuda(), label_batch.cuda()
+                    volume_batch, offset_batch, label_batch = sampled_batch['image'], sampled_batch['offset_cnt'], sampled_batch['label']
+                    volume_batch, offset_batch, label_batch = volume_batch.cuda(), offset_batch.cuda(), label_batch.cuda()
                     with torch.no_grad():
                         outputs_off, outputs_seg = net(volume_batch)
 
@@ -172,7 +172,7 @@ if __name__ == "__main__":
                         iter_test = iter_test + 1
                 writer.add_scalar('loss_test/test_loss', test_loss/iter_test, iter_num)
                 net.train()
-                del volume_batch, offset_batch, offset_skl_batch, label_batch, loss_seg, outputs_soft, loss_seg_dice, loss_off
+                del volume_batch, offset_batch, label_batch, loss_seg, outputs_soft, loss_seg_dice, loss_off
             
                                 
         if iter_num > max_iterations:

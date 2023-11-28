@@ -1,8 +1,7 @@
 import torch
-import time
 from torch import nn
-import numpy as np
 import torch.nn.functional as F
+
 
 class ConvBlock(nn.Module):
     def __init__(self, n_stages, n_filters_in, n_filters_out, normalization='none'):
@@ -177,6 +176,10 @@ class VNet_singleTooth(nn.Module):
         self.block_eight_up_bd = UpsamplingDeconvBlock(n_filters * 2, n_filters, normalization=normalization)
         self.out_conv_bd = nn.Conv3d(n_filters, 2, 3, padding=1)
         
+        self.block_eight_kp = ConvBlock(2, n_filters * 2, n_filters * 2, normalization=normalization)
+        self.block_eight_up_kp = UpsamplingDeconvBlock(n_filters * 2, n_filters, normalization=normalization)
+        self.out_conv_kp = nn.Conv3d(n_filters, 2, 3, padding=1)
+        
 
     def encoder(self, input):
         x1 = self.block_one(input)
@@ -239,9 +242,9 @@ class VNet_singleTooth(nn.Module):
         x7_up = self.block_seven_up(x7)
         x7_up = x7_up + x2
         
-        x8 = self.block_eight(x7_up)
-        x8_up = self.block_eight_up(x8)
-        out_bd= self.out_conv_seg(x8_up)   
+        x8 = self.block_eight_bd(x7_up)
+        x8_up = self.block_eight_up_bd(x8)
+        out_bd = self.out_conv_bd(x8_up)   
         return out_bd
 
     def decoder_kp(self, features):
@@ -262,9 +265,9 @@ class VNet_singleTooth(nn.Module):
         x7_up = self.block_seven_up(x7)
         x7_up = x7_up + x2
         
-        x8 = self.block_eight(x7_up)
-        x8_up = self.block_eight_up(x8)
-        out_kp= self.out_conv_seg(x8_up)   
+        x8 = self.block_eight_bd(x7_up)
+        x8_up = self.block_eight_up_bd(x8)
+        out_kp= self.out_conv_kp(x8_up)   
         return out_kp
 
         
@@ -275,5 +278,5 @@ class VNet_singleTooth(nn.Module):
         seg = self.decoder(features)
         seg_bd = self.decoder_bd(features)
         seg_kp = self.decoder_kp(features)
-        return seg, seg_fcn
+        return seg, seg_bd, seg_kp
         

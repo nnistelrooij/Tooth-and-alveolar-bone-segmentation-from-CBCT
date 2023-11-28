@@ -12,14 +12,14 @@ from torch.utils.data.sampler import Sampler
 class toothLoader(Dataset):
     """ LA Dataset """
     def __init__(self, base_dir=None, split='train', num=None, transform=None):
-        self._base_dir = '/public_bme/data/czm/NC_CBCT/h5_1st_stage_v1/'
+        self._base_dir = '/home/mkaailab/Documents/CBCT/toothseg/data/train_cui_cnt_skl'
         self.transform = transform
         self.sample_list = []
         if split=='train':
-            with open(self._base_dir+'/file.list', 'r') as f:
+            with open(self._base_dir+'/train_file.list', 'r') as f:
                 self.image_list = f.readlines()
         elif split == 'test':
-            with open(self._base_dir+'/test.list', 'r') as f:
+            with open(self._base_dir+'/test_file.list', 'r') as f:
                 self.image_list = f.readlines()
         self.image_list = [item.replace('\n','') for item in self.image_list]
         print("total {} samples".format(len(self.image_list)))
@@ -65,13 +65,13 @@ class ToTensor(object):
 
     def __call__(self, sample):
         image = sample['image']
-        image = image.reshape(1, image.shape[0], image.shape[1], image.shape[2]).astype(np.float)
+        image = image.reshape(1, image.shape[0], image.shape[1], image.shape[2]).astype(np.float32)
         offset_cnt = sample['offset_cnt']
-        offset_cnt = offset_cnt.reshape(offset_cnt.shape[0], offset_cnt.shape[1], offset_cnt.shape[2], offset_cnt.shape[3]).astype(np.float)
+        offset_cnt = offset_cnt.reshape(offset_cnt.shape[0], offset_cnt.shape[1], offset_cnt.shape[2], offset_cnt.shape[3]).astype(np.float32)
         offset_skl = sample['offset_skl']
-        offset_skl = offset_skl.reshape(offset_skl.shape[0], offset_skl.shape[1], offset_skl.shape[2], offset_skl.shape[3]).astype(np.float)        
+        offset_skl = offset_skl.reshape(offset_skl.shape[0], offset_skl.shape[1], offset_skl.shape[2], offset_skl.shape[3]).astype(np.float32)        
         label = sample['label']   
-        label = label.reshape(label.shape[0], label.shape[1], label.shape[2]).astype(np.float)
+        label = label.reshape(label.shape[0], label.shape[1], label.shape[2]).astype(np.float32)
         return {'image': torch.from_numpy(image).float(), 'offset_cnt': torch.from_numpy(offset_cnt).float(), 'offset_skl': torch.from_numpy(offset_skl).float(), 'label': torch.from_numpy(label).long()}
 
 

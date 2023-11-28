@@ -15,10 +15,10 @@ class LAHeart(Dataset):
         self.transform = transform
         self.sample_list = []
         if split=='train':
-            with open('/public_bme/data/czm/NC_CBCT/h5_roi/file.list', 'r') as f:
+            with open('../data/train_cui/train_file.list', 'r') as f:
                 self.image_list = f.readlines()
         elif split == 'test':
-            with open('/public_bme/data/czm/NC_CBCT/h5_roi/test.list', 'r') as f:
+            with open('../data/train_cui/test_file.list', 'r') as f:
                 self.image_list = f.readlines()
         self.image_list = [item.replace('\n','') for item in self.image_list]
         if num is not None:
@@ -33,7 +33,7 @@ class LAHeart(Dataset):
         h5f = h5py.File(image_name, 'r')
         image = h5f['image'][:]
         label = h5f['label'][:]
-        label[label > 0.5] = 1
+        label = label.astype(float)
         sample = {'image': image, 'label': label}
         if self.transform:
             sample = self.transform(sample)
